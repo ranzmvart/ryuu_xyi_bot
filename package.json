@@ -15,7 +15,8 @@
     "node-fetch": "^3.0.0",
     "sharp": "^0.32.0",
     "fluent-ffmpeg": "^2.1.2",
-    "ffmpeg-static": "^4.4.0"
+    "ffmpeg-static": "^4.4.0",
+    "ytdl-core": "^4.11.5"
 }
 
 }
