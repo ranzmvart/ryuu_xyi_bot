@@ -1,4 +1,9 @@
-import makeWASocket, { useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason, downloadContentFromMessage } from '@whiskeysockets/baileys';
+import makeWASocket, { 
+  useMultiFileAuthState, 
+  fetchLatestBaileysVersion, 
+  DisconnectReason, 
+  downloadContentFromMessage 
+} from '@whiskeysockets/baileys';
 import qrcode from 'qrcode-terminal';
 import dotenv from 'dotenv';
 import fs from 'fs';
@@ -38,16 +43,21 @@ async function start() {
 
   const sock = makeWASocket({
     version,
-    auth: state,
-    printQRInTerminal: true
+    auth: state
   });
 
-  sock.ev.on('creds.update', saveCreds);
-
+  // 📌 FIX QR CODE — INI BAGIAN PENTING
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect, qr } = update;
-    if (qr) qrcode.generate(qr, { small: true });
+
+    if (qr) {
+      console.log("\n=== SCAN QR DI BAWAH INI ===\n");
+      qrcode.generate(qr, { small: true });
+      console.log("\n============================\n");
+    }
+
     if (connection === 'open') console.log(`Bot ${config.botName} online!`);
+
     if (connection === 'close') {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       console.log('connection closed, reconnecting?', shouldReconnect);
@@ -55,6 +65,8 @@ async function start() {
       else console.log('Logged out — delete auth_info to re-scan');
     }
   });
+
+  sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('messages.upsert', async (m) => {
     try {
@@ -66,7 +78,10 @@ async function start() {
 
       // run listeners
       for (const l of listeners) {
-        try { if (typeof l === 'function') await l({ sock, msg, from, isGroup, sender }); } catch(e) { console.error('listener error', e); }
+        try { 
+          if (typeof l === 'function') 
+            await l({ sock, msg, from, isGroup, sender }); 
+        } catch(e) { console.error('listener error', e); }
       }
 
       const text = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
@@ -88,7 +103,9 @@ async function start() {
   sock.ev.on('group-participants.update', async (update) => {
     for (const l of listeners) {
       if (typeof l.onGroupParticipantsUpdate === 'function') {
-        try { await l.onGroupParticipantsUpdate({ sock, update }); } catch(e) { console.error(e); }
+        try { 
+          await l.onGroupParticipantsUpdate({ sock, update }); 
+        } catch(e) { console.error(e); }
       }
     }
   });
